@@ -150,7 +150,7 @@ class _ProduitsState extends State<Produits> {
     TextEditingController quantiteController = TextEditingController();
     TextEditingController descriptionController = TextEditingController();
 
-    // Afficher une boîte de dialogue de modification sans pré-remplir les champs
+    // Afficher une boîte de dialogue de modification en pré-remplissant les champs
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -185,11 +185,6 @@ class _ProduitsState extends State<Produits> {
           actions: [
             TextButton(
               onPressed: () {
-                // Réinitialiser les valeurs des contrôleurs de texte à une chaîne vide
-                nomController.clear();
-                prixController.clear();
-                quantiteController.clear();
-                descriptionController.clear();
                 Navigator.of(context).pop();
               },
               child: const Text("Annuler"),
@@ -197,11 +192,19 @@ class _ProduitsState extends State<Produits> {
             TextButton(
               onPressed: () async {
                 try {
-                  // Implémenter la logique pour modifier le produit avec les nouvelles valeurs
-                  String nouveauNom = nomController.text;
-                  double nouveauPrix = double.parse(prixController.text);
-                  int nouvelleQuantite = int.parse(quantiteController.text);
-                  String nouvelleDescription = descriptionController.text;
+                  // Récupérer les valeurs modifiées
+                  String? nouveauNom =
+                      nomController.text.isNotEmpty ? nomController.text : null;
+                  double? nouveauPrix = prixController.text.isNotEmpty
+                      ? double.parse(prixController.text)
+                      : null;
+                  int? nouvelleQuantite = quantiteController.text.isNotEmpty
+                      ? int.parse(quantiteController.text)
+                      : null;
+                  String? nouvelleDescription =
+                      descriptionController.text.isNotEmpty
+                          ? descriptionController.text
+                          : null;
 
                   // Appeler la méthode de modification de produit avec les nouvelles valeurs
                   await ProduitsAPI.modifierProduit(produit['id'], nouveauNom,
@@ -212,12 +215,6 @@ class _ProduitsState extends State<Produits> {
 
                   // Rafraîchir l'interface utilisateur après avoir mis à jour les données
                   setState(() {});
-
-                  // Réinitialiser les valeurs des contrôleurs de texte à une chaîne vide
-                  nomController.clear();
-                  prixController.clear();
-                  quantiteController.clear();
-                  descriptionController.clear();
 
                   // Fermer la boîte de dialogue
                   Navigator.of(context).pop();
