@@ -297,12 +297,12 @@ class _ProduitsState extends State<Produits> {
                       Container(
                         width: MediaQuery.of(context).size.width,
                         child: Image.network(
-                          'http://10.0.2.2:8000/images/${produit['id']}.png',
+                          'http://10.74.1.151:8000/images/${produit['id']}.png',
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             // En cas d'erreur de chargement, afficher l'image par défaut
                             return Image.network(
-                              'http://10.0.2.2:8000/images/default_image.png',
+                              'http://10.74.1.151:8000/images/default_image.png',
                               fit: BoxFit.cover,
                             );
                           },
