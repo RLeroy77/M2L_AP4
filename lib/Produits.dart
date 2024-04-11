@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:ap4/API/ProduitsAPI.dart';
 import 'package:ap4/Connexion.dart';
+import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Produits extends StatefulWidget {
   const Produits({Key? key}) : super(key: key);
@@ -10,27 +12,16 @@ class Produits extends StatefulWidget {
 }
 
 class _ProduitsState extends State<Produits> {
-  List<dynamic> produitsList = [];
+  late Future<List<dynamic>> _futureProduitsListe;
 
   @override
   void initState() {
     super.initState();
-    _fetchProduits();
+    _futureProduitsListe = ProduitsAPI.getAllProduits();
   }
 
-  Future<void> _fetchProduits() async {
-    try {
-      List<dynamic> produits = await ProduitsAPI.getAllProduits();
-      setState(() {
-        produitsList = produits;
-      });
-    } catch (err) {
-      print('Erreur lors de la récupération des produits: $err');
-      // Gérer l'erreur selon votre logique d'application
-    }
-  }
-
-  void _ajouterProduit(BuildContext context) {
+  void _ajouterProduit(BuildContext context) async {
+    // Créer des contrôleurs de texte pour chaque champ du formulaire
     TextEditingController nomController = TextEditingController();
     TextEditingController prixController = TextEditingController();
     TextEditingController quantiteController = TextEditingController();
@@ -86,8 +77,11 @@ class _ProduitsState extends State<Produits> {
                   await ProduitsAPI.addProduit(
                       nom, prix, quantite, description);
 
-                  // Rafraîchir la liste des produits après l'ajout
-                  _fetchProduits();
+                  // Mise à jour de la liste des produits
+                  _futureProduitsListe = ProduitsAPI.getAllProduits();
+
+                  // Rafraîchir l'interface utilisateur après avoir mis à jour les données
+                  setState(() {});
 
                   // Fermer la boîte de dialogue
                   Navigator.of(context).pop();
@@ -104,7 +98,7 @@ class _ProduitsState extends State<Produits> {
     );
   }
 
-  void _supprimerProduit(String id) {
+  void _supprimerProduit(String id) async {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -122,9 +116,17 @@ class _ProduitsState extends State<Produits> {
             TextButton(
               onPressed: () async {
                 try {
+                  // Supprimer le produit
                   await ProduitsAPI.supprimerProduit(id);
-                  _fetchProduits(); // Rafraîchir la liste après la suppression
-                  Navigator.of(context).pop(); // Fermer la boîte de dialogue
+
+                  // Mise à jour de la liste des produits
+                  _futureProduitsListe = ProduitsAPI.getAllProduits();
+
+                  // Rafraîchir l'interface utilisateur après avoir mis à jour les données
+                  setState(() {});
+
+                  // Fermer la boîte de dialogue
+                  Navigator.of(context).pop();
                 } catch (error) {
                   print("Erreur lors de la suppression du produit: $error");
                   // Afficher un message d'erreur si nécessaire
@@ -140,7 +142,8 @@ class _ProduitsState extends State<Produits> {
     );
   }
 
-  void _modifierProduit(BuildContext context, Map<String, dynamic> produit) {
+  void _modifierProduit(
+      BuildContext context, Map<String, dynamic> produit) async {
     // Créer des contrôleurs de texte pour chaque champ du formulaire
     TextEditingController nomController = TextEditingController();
     TextEditingController prixController = TextEditingController();
@@ -192,28 +195,36 @@ class _ProduitsState extends State<Produits> {
               child: const Text("Annuler"),
             ),
             TextButton(
-              onPressed: () {
-                // Implémenter la logique pour modifier le produit avec les nouvelles valeurs
-                String nouveauNom = nomController.text;
-                double nouveauPrix = double.parse(prixController.text);
-                int nouvelleQuantite = int.parse(quantiteController.text);
-                String nouvelleDescription = descriptionController.text;
+              onPressed: () async {
+                try {
+                  // Implémenter la logique pour modifier le produit avec les nouvelles valeurs
+                  String nouveauNom = nomController.text;
+                  double nouveauPrix = double.parse(prixController.text);
+                  int nouvelleQuantite = int.parse(quantiteController.text);
+                  String nouvelleDescription = descriptionController.text;
 
-                // Appeler la méthode de modification de produit avec les nouvelles valeurs
-                ProduitsAPI.modifierProduit(produit['id'], nouveauNom,
-                    nouveauPrix, nouvelleQuantite, nouvelleDescription);
+                  // Appeler la méthode de modification de produit avec les nouvelles valeurs
+                  await ProduitsAPI.modifierProduit(produit['id'], nouveauNom,
+                      nouveauPrix, nouvelleQuantite, nouvelleDescription);
 
-                // Rafraîchir la liste des produits après la modification
-                _fetchProduits();
+                  // Mise à jour de la liste des produits
+                  _futureProduitsListe = ProduitsAPI.getAllProduits();
 
-                // Réinitialiser les valeurs des contrôleurs de texte à une chaîne vide
-                nomController.clear();
-                prixController.clear();
-                quantiteController.clear();
-                descriptionController.clear();
+                  // Rafraîchir l'interface utilisateur après avoir mis à jour les données
+                  setState(() {});
 
-                // Fermer la boîte de dialogue
-                Navigator.of(context).pop();
+                  // Réinitialiser les valeurs des contrôleurs de texte à une chaîne vide
+                  nomController.clear();
+                  prixController.clear();
+                  quantiteController.clear();
+                  descriptionController.clear();
+
+                  // Fermer la boîte de dialogue
+                  Navigator.of(context).pop();
+                } catch (error) {
+                  print("Erreur lors de la modification du produit: $error");
+                  // Afficher un message d'erreur si nécessaire
+                }
               },
               child: const Text("Modifier"),
             ),
@@ -223,12 +234,16 @@ class _ProduitsState extends State<Produits> {
     );
   }
 
-  void _deconnexion() {
-    // Implémentez ici la logique pour supprimer le token, par exemple :
-    // Supprimer le token de l'utilisateur
-    // Naviguer vers la page de connexion
-    Navigator.push(
-        context, MaterialPageRoute(builder: (context) => const Connexion()));
+  void _deconnexion() async {
+    // Supprimer le token des préférences partagées
+    SharedPreferences token = await SharedPreferences.getInstance();
+    await token.remove('token');
+
+    // Naviguer vers l'écran de connexion
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const Connexion()),
+    );
   }
 
   @override
@@ -240,7 +255,6 @@ class _ProduitsState extends State<Produits> {
         centerTitle: true,
         backgroundColor: const Color(0xFFF6C614),
         leading: IconButton(
-          // Déplacez le bouton de déconnexion à gauche
           icon: const Icon(Icons.exit_to_app),
           onPressed: _deconnexion,
         ),
@@ -252,54 +266,80 @@ class _ProduitsState extends State<Produits> {
           _ajouterProduit(context);
         },
         backgroundColor: const Color(0xFFC92B39),
-        child: const Icon(Icons.add), // Couleur de votre choix
+        child: const Icon(Icons.add),
       ),
     );
   }
 
   Widget _buildProduitsList() {
-    if (produitsList.isEmpty) {
-      return const Center(
-        child: Text("Pas de produits"),
-      );
-    } else {
-      return ListView.builder(
-        itemCount: produitsList.length,
-        itemBuilder: (BuildContext context, int index) {
-          final produit = produitsList[index];
-          return ListTile(
-            title: Text(produit['nom']), // Nom du produit
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Prix: ${produit['prix']}'), // Prix du produit
-                Text('Quantité: ${produit['quantite']}'), // Quantité du produit
-                Text(
-                    'Description: ${produit['description']}'), // Description du produit
-              ],
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: () {
-                    _modifierProduit(context,
-                        produit); // Appeler la fonction de modification du produit
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: () {
-                    _supprimerProduit(produit['id']);
-                  },
-                ),
-              ],
-            ),
-            // Vous pouvez afficher d'autres détails du produit ici
+    return FutureBuilder<List<dynamic>>(
+      future: _futureProduitsListe,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(),
           );
-        },
-      );
-    }
+        } else {
+          if (snapshot.hasError) {
+            return const Center(
+              child: Text("Erreur lors du chargement des produits"),
+            );
+          } else {
+            List<dynamic> produitsList = snapshot.data ?? [];
+            if (produitsList.isEmpty) {
+              return const Center(
+                child: Text("Pas de produits"),
+              );
+            } else {
+              return ListView.builder(
+                itemCount: produitsList.length,
+                itemBuilder: (BuildContext context, int index) {
+                  final produit = produitsList[index];
+                  return Column(
+                    children: [
+                      Container(
+                        width: MediaQuery.of(context).size.width,
+                        child: Image.network(
+                          'http://10.0.2.2:8000/images/${produit['id']}.png',
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      ListTile(
+                        title: Text(produit['nom']),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Prix: ${produit['prix']}'),
+                            Text('Quantité: ${produit['quantite']}'),
+                            Text('Description: ${produit['description']}'),
+                          ],
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () {
+                                _modifierProduit(context, produit);
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () {
+                                _supprimerProduit(produit['id']);
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              );
+            }
+          }
+        }
+      },
+    );
   }
 }

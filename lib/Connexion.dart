@@ -2,6 +2,7 @@ import 'package:ap4/Produits.dart';
 import 'package:flutter/material.dart';
 import 'package:ap4/API/ConnexionAPI.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Connexion extends StatefulWidget {
   const Connexion({super.key});
@@ -21,46 +22,76 @@ class _ConnexionState extends State<Connexion> {
       String password = passwordController.text;
 
       try {
-        String token = await ConnexionAPI.connexion(username, password);
-        // Décoder le token JWT pour obtenir les données
-        Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+        // Appel à la fonction connexion sans attendre le token
+        await ConnexionAPI.connexion(username, password);
 
-        // Récupérer le rôle de l'utilisateur
-        int role = decodedToken['role'];
+        // Récupérer le token à partir du cookie
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        String? token = prefs.getString('token');
 
-        if (role == 1) {
-          // Si l'utilisateur est un administrateur, naviguer vers la prochaine page
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => const Produits()));
-        } else if (role == 0) {
-          // Si l'utilisateur n'est pas un administrateur, afficher un message d'erreur
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Text('Pas de droit'),
-                content: const Text(
-                    'Vous n\'avez pas les autorisations nécessaires.'),
-                actions: <Widget>[
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text('OK'),
-                  ),
-                ],
-              );
-            },
-          );
+        if (token != null) {
+          // Décoder le token JWT pour obtenir les données
+          Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+
+          // Récupérer l'ID de l'utilisateur à partir du token
+          String userId = decodedToken['userId'];
+
+          // Récupérer le rôle de l'utilisateur à partir de l'ID
+          String role = await ConnexionAPI.getUserRole(userId);
+
+          if (role == '1') {
+            // Si l'utilisateur est un administrateur, naviguer vers la prochaine page
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const Produits()));
+          } else if (role == '0') {
+            // Si l'utilisateur n'est pas un administrateur, afficher un message d'erreur
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: const Text('Pas de droit'),
+                  content: const Text(
+                      'Vous n\'avez pas les autorisations nécessaires.'),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text('OK'),
+                    ),
+                  ],
+                );
+              },
+            );
+          } else {
+            // Si le rôle est indéfini ou autre, afficher un message d'erreur
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: const Text('Erreur'),
+                  content: const Text(
+                      'Erreur lors de la récupération du rôle de l\'utilisateur.'),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text('OK'),
+                    ),
+                  ],
+                );
+              },
+            );
+          }
         } else {
-          // Si le rôle est indéfini ou autre, afficher un message d'erreur
+          // Si le token est null, afficher un message d'erreur
           showDialog(
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
                 title: const Text('Erreur'),
-                content: const Text(
-                    'Erreur lors de la récupération du rôle de l\'utilisateur.'),
+                content: const Text('Token introuvable.'),
                 actions: <Widget>[
                   TextButton(
                     onPressed: () {

@@ -1,11 +1,14 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ConnexionAPI {
-  static Future<String> connexion(String username, String password) async {
+  static const String baseUrl = "http://10.0.2.2:8000";
+
+  static Future<void> connexion(String username, String password) async {
     try {
       final response = await http.post(
-        Uri.parse("http://10.74.1.151:8000/apiAP4/adminProduitsAP4/connexion"),
+        Uri.parse("$baseUrl/api/inscriptionConnexion/connexion"),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -14,33 +17,39 @@ class ConnexionAPI {
           'mot_de_passe': password,
         }),
       );
-
       if (response.statusCode == 200) {
-        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        final responseData = jsonDecode(response.body);
         String token = responseData['token'];
-        return token;
+        // Stockage du token dans un cookie
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', token);
       } else {
         throw Exception("Erreur d'authentification: ${response.statusCode}");
       }
-    } catch (err) {
-      throw Exception("Erreur lors de la connexion: $err");
+    } catch (error) {
+      throw Exception("Erreur lors de la connexion: $error");
     }
   }
 
-  static Future<String> getUserRole(String UserId) async {
+  static Future<String> getUserRole(String userId) async {
     try {
-      final reponse = await http.get(
-          Uri.parse("http://10.74.1.151:8000/api/users/getUserRole/$UserId"));
-      if (reponse.statusCode == 200) {
-        final Map<String, dynamic> responseData = jsonDecode(reponse.body);
-        String role = responseData['role'];
-        return role;
+      final response =
+          await http.get(Uri.parse("$baseUrl/api/users/getUserRole/$userId"));
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        if (responseData.isNotEmpty && responseData[0].containsKey('admin')) {
+          String role = responseData[0]['admin'].toString();
+          return role;
+        } else {
+          throw Exception(
+              "Réponse JSON invalide : aucune clé 'admin' trouvée.");
+        }
       } else {
         throw Exception(
-            "Erreur de recuperation du role: ${reponse.statusCode}");
+            "Erreur de récupération du rôle: ${response.statusCode}");
       }
     } catch (e) {
-      throw Exception("Erreur lors de la recuperation du role: $e");
+      throw Exception("Erreur lors de la récupération du rôle: $e");
     }
   }
 }

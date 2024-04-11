@@ -2,12 +2,15 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ProduitsAPI {
+  static const String baseUrl = "http://10.0.2.2:8000";
+
   static Future<List<dynamic>> getAllProduits() async {
     try {
-      var res = await http.get(Uri.parse(
-          "http://10.74.1.151:8000/apiAP4/adminProduitsAP4/getAllProduits"));
+      var res =
+          await http.get(Uri.parse("$baseUrl/api/produits/getAllProduits"));
       if (res.statusCode == 200) {
         final List<dynamic> produitsList = jsonDecode(res.body);
+        print(produitsList);
         return produitsList;
       } else {
         throw Exception("Erreur serveur: ${res.statusCode}");
@@ -21,7 +24,7 @@ class ProduitsAPI {
       String nom, double prix, int quantite, String description) async {
     try {
       final response = await http.post(
-        Uri.parse("http://10.74.1.151:8000/apiAP4/adminProduitsAP4/addProduit"),
+        Uri.parse("$baseUrl/apiAP4/adminProduitsAP4/addProduit"),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -45,8 +48,7 @@ class ProduitsAPI {
   static Future<void> supprimerProduit(String id) async {
     try {
       final response = await http.delete(
-        Uri.parse(
-            "http://10.74.1.151:8000/apiAP4/adminProduitsAP4/deleteProduit/$id"),
+        Uri.parse("$baseUrl/apiAP4/adminProduitsAP4/deleteProduit/$id"),
       );
       if (response.statusCode == 200) {
         print("Produit supprimé avec succès");
@@ -64,8 +66,7 @@ class ProduitsAPI {
       int quantite, String description) async {
     try {
       var res = await http.put(
-          Uri.parse(
-              'http://10.74.1.151:8000/apiAP4/adminProduitsAP4/editProduit/$id'),
+          Uri.parse("$baseUrl/apiAP4/adminProduitsAP4/editProduit/$id"),
           body: {
             'nom': nom,
             'prix': prix.toString(),
