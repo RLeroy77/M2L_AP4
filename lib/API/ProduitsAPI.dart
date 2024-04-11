@@ -48,7 +48,7 @@ class ProduitsAPI {
   static Future<void> supprimerProduit(String id) async {
     try {
       final response = await http.delete(
-        Uri.parse("$baseUrl/apiAP4/adminProduitsAP4/deleteProduit/$id"),
+        Uri.parse("$baseUrl/api/adminProduits/deleteProduit/$id"),
       );
       if (response.statusCode == 200) {
         print("Produit supprimé avec succès");
