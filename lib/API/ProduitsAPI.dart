@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ProduitsAPI {
-  static const String baseUrl = "http://10.0.2.2:8000";
+  static const String baseUrl = "http://10.74.1.151:8000";
 
   static Future<List<dynamic>> getAllProduits() async {
     try {
@@ -98,7 +98,7 @@ class ProduitsAPI {
       if (quantite != null) requestBody['quantite'] = quantite;
       if (description != null) requestBody['description'] = description;
 
-       final response = await http.put(
+      final response = await http.put(
         Uri.parse("$baseUrl/api/adminProduits/editProduit/$id"),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
