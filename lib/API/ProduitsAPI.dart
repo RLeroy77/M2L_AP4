@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProduitsAPI {
   static const String baseUrl = "http://10.0.2.2:8000";
@@ -10,7 +12,6 @@ class ProduitsAPI {
           await http.get(Uri.parse("$baseUrl/api/produits/getAllProduits"));
       if (res.statusCode == 200) {
         final List<dynamic> produitsList = jsonDecode(res.body);
-        print(produitsList);
         return produitsList;
       } else {
         throw Exception("Erreur serveur: ${res.statusCode}");
@@ -23,10 +24,19 @@ class ProduitsAPI {
   static Future<void> addProduit(
       String nom, double prix, int quantite, String description) async {
     try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('token');
+
+      if (token == null) {
+        throw Exception(
+            "Le token n'est pas disponible dans les préférences partagées.");
+      }
+
       final response = await http.post(
-        Uri.parse("$baseUrl/apiAP4/adminProduitsAP4/addProduit"),
+        Uri.parse("$baseUrl/api/adminProduits/addProduitFlutter"),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
+          'authorization': token,
         },
         body: jsonEncode(<String, dynamic>{
           'nom': nom,
@@ -47,8 +57,19 @@ class ProduitsAPI {
 
   static Future<void> supprimerProduit(String id) async {
     try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('token');
+
+      if (token == null) {
+        throw Exception(
+            "Le token n'est pas disponible dans les préférences partagées.");
+      }
+
       final response = await http.delete(
         Uri.parse("$baseUrl/api/adminProduits/deleteProduit/$id"),
+        headers: {
+          'authorization': token,
+        },
       );
       if (response.statusCode == 200) {
         print("Produit supprimé avec succès");
@@ -65,14 +86,26 @@ class ProduitsAPI {
   static Future<void> modifierProduit(String id, String nom, double prix,
       int quantite, String description) async {
     try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('token');
+
+      if (token == null) {
+        throw Exception(
+            "Le token n'est pas disponible dans les préférences partagées.");
+      }
       var res = await http.put(
-          Uri.parse("$baseUrl/apiAP4/adminProduitsAP4/editProduit/$id"),
-          body: {
-            'nom': nom,
-            'prix': prix.toString(),
-            'quantite': quantite.toString(),
-            'description': description,
-          });
+        Uri.parse("$baseUrl/api/adminProduits/editProduit/$id"),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'authorization': token,
+        },
+        body: jsonEncode(<String, dynamic>{
+          'nom': nom,
+          'prix': prix,
+          'quantite': quantite,
+          'description': description,
+        }),
+      );
       if (res.statusCode != 200) {
         throw Exception(
             "Erreur lors de la modification du produit: ${res.statusCode}");

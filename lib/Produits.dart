@@ -302,6 +302,13 @@ class _ProduitsState extends State<Produits> {
                         child: Image.network(
                           'http://10.0.2.2:8000/images/${produit['id']}.png',
                           fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            // En cas d'erreur de chargement, afficher l'image par défaut
+                            return Image.network(
+                              'http://10.0.2.2:8000/images/default_image.png',
+                              fit: BoxFit.cover,
+                            );
+                          },
                         ),
                       ),
                       ListTile(
@@ -314,23 +321,23 @@ class _ProduitsState extends State<Produits> {
                             Text('Description: ${produit['description']}'),
                           ],
                         ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.edit),
-                              onPressed: () {
-                                _modifierProduit(context, produit);
-                              },
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete),
-                              onPressed: () {
-                                _supprimerProduit(produit['id']);
-                              },
-                            ),
-                          ],
-                        ),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit),
+                            onPressed: () {
+                              _modifierProduit(context, produit);
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () {
+                              _supprimerProduit(produit['id']);
+                            },
+                          ),
+                        ],
                       ),
                     ],
                   );
