@@ -86,7 +86,7 @@ class _ProduitsState extends State<Produits> {
                   // Fermer la boîte de dialogue
                   Navigator.of(context).pop();
                 } catch (error) {
-                  print("Erreur lors de l'ajout du produit: $error");
+                  throw Exception("Erreur lors de l'ajout du produit: $error");
                   // Afficher un message d'erreur si nécessaire
                 }
               },
@@ -128,10 +128,7 @@ class _ProduitsState extends State<Produits> {
                   // Fermer la boîte de dialogue
                   Navigator.of(context).pop();
                 } catch (error) {
-                  print("Erreur lors de la suppression du produit: $error");
-                  // Afficher un message d'erreur si nécessaire
-                  Navigator.of(context)
-                      .pop(); // Fermer la boîte de dialogue en cas d'erreur
+                  Navigator.of(context).pop();
                 }
               },
               child: const Text("Supprimer"),
@@ -219,8 +216,8 @@ class _ProduitsState extends State<Produits> {
                   // Fermer la boîte de dialogue
                   Navigator.of(context).pop();
                 } catch (error) {
-                  print("Erreur lors de la modification du produit: $error");
-                  // Afficher un message d'erreur si nécessaire
+                  throw Exception(
+                      "Erreur lors de la modification du produit: $error");
                 }
               },
               child: const Text("Modifier"),

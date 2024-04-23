@@ -20,6 +20,7 @@ class ProduitsAPI {
     }
   }
 
+
   static Future<void> addProduit(
       String nom, double prix, int quantite, String description) async {
     try {
@@ -44,15 +45,14 @@ class ProduitsAPI {
           'description': description,
         }),
       );
-      if (response.statusCode == 200) {
-        print("Produit ajouté avec succès");
-      } else {
+      if (response.statusCode != 200) {
         throw Exception("Erreur serveur: ${response.statusCode}");
       }
     } catch (err) {
       throw Exception("Erreur lors de l'ajout du produit: $err");
     }
   }
+
 
   static Future<void> supprimerProduit(String id) async {
     try {
@@ -70,17 +70,14 @@ class ProduitsAPI {
           'authorization': token,
         },
       );
-      if (response.statusCode == 200) {
-        print("Produit supprimé avec succès");
-      } else if (response.statusCode == 404) {
-        throw Exception("Produit non trouvé");
-      } else {
+      if (response.statusCode != 200 && response.statusCode != 404) {
         throw Exception("Erreur serveur: ${response.statusCode}");
       }
     } catch (err) {
       throw Exception("Erreur lors de la suppression du produit: $err");
     }
   }
+
 
   static Future<void> modifierProduit(String id, String? nom, double? prix,
       int? quantite, String? description) async {
