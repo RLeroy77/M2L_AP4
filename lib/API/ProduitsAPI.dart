@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ProduitsAPI {
-  static const String baseUrl = "http://10.74.1.151:8000";
+  static const String baseUrl = "http://10.0.2.2:8000";
 
   static Future<List<dynamic>> getAllProduits() async {
     try {
@@ -19,7 +19,6 @@ class ProduitsAPI {
       throw Exception("Erreur lors de la récupération des produits: $err");
     }
   }
-
 
   static Future<void> addProduit(
       String nom, double prix, int quantite, String description) async {
@@ -53,7 +52,6 @@ class ProduitsAPI {
     }
   }
 
-
   static Future<void> supprimerProduit(String id) async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -77,7 +75,6 @@ class ProduitsAPI {
       throw Exception("Erreur lors de la suppression du produit: $err");
     }
   }
-
 
   static Future<void> modifierProduit(String id, String? nom, double? prix,
       int? quantite, String? description) async {
