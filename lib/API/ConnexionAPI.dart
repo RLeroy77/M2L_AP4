@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ConnexionAPI {
-  static const String baseUrl = "http://10.74.1.151:8000";
+  static const String baseUrl = "http://192.168.1.230:8000";
 
   static Future<void> connexion(String username, String password) async {
     try {
